@@ -30,27 +30,28 @@ extension UIImageView {
                 self.image = cachedImage
                 return
             }
-            
-            if let url = URL(string: imageUrlString) {
-                URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
-                    
-                    //print("RESPONSE FROM API: \(response)")
-                    if error != nil {
-                        print("ERROR LOADING IMAGES FROM URL: \(error!.localizedDescription) \(imageUrlString)")
-                        DispatchQueue.main.async {
-                            self.image = placeHolder
+                DispatchQueue.global(qos: .background).async {
+                if let url = URL(string: imageUrlString) {
+                    URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
+                        
+                        //print("RESPONSE FROM API: \(response)")
+                        if error != nil {
+                            print("ERROR LOADING IMAGES FROM URL: \(error!.localizedDescription) \(imageUrlString)")
+                            DispatchQueue.main.async {
+                                self.image = placeHolder
+                            }
+                            return
                         }
-                        return
-                    }
-                    DispatchQueue.main.async {
-                        if let data = data {
-                            if let downloadedImage = UIImage(data: data) {
-                                imageCache.setObject(downloadedImage, forKey: NSString(string: imageUrlString))
-                                self.image = downloadedImage
+                        DispatchQueue.main.async {
+                            if let data = data {
+                                if let downloadedImage = UIImage(data: data) {
+                                    imageCache.setObject(downloadedImage, forKey: NSString(string: imageUrlString))
+                                    self.image = downloadedImage
+                                }
                             }
                         }
-                    }
-                }).resume()
+                    }).resume()
+                }
             }
 
         } else {
