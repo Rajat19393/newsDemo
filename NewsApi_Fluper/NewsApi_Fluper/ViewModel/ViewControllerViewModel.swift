@@ -12,14 +12,17 @@ import CoreData
 class ViewControllerViewModel {
     private let networking = NetworkLayer()
     private var articlesArray : [Articles]?
-    private let urlString = "https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey=dff75f9e7676477db967dd00dc6708ae"
+    private let urlString = "https://newsapi.org/v2/everything?q=bitcoin&from=2019-10-19&sortBy=publishedAt&apiKey=dff75f9e7676477db967dd00dc6708ae"
     
     func getNewsData(_ view : UIViewController ,_ context : NSManagedObjectContext,_ appDelegate : AppDelegate,successHandler: @escaping (Bool) -> Void ) {
+        view.showSpinner()
         self.getNewsDataFromDataBase(view, context, appDelegate) { (success) in
             if success {
+                    view.removeSpinner()
                     successHandler(true)
             } else {
                 self.getNewsDataFromServer(view, context, appDelegate, successHandler: { (pass) in
+                    view.removeSpinner()
                     if pass {
                         successHandler(true)
                     }

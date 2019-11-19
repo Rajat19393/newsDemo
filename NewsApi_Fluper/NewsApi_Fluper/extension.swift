@@ -7,8 +7,8 @@
 //
 
 import UIKit
-let imageCache = NSCache<NSString, UIImage>()
-
+import SDWebImage
+var vSpinner : UIView?
 extension UILabel {
     func setText(_ title : String? , _ heading : String){
         if let lableText = title {
@@ -23,37 +23,11 @@ extension UILabel {
 extension UIImageView {
     
     func imageFromServerURL(_ URLString: String?, placeHolder: UIImage?) {
+
         if let imageUrlString = URLString {
             self.isHidden = false
-            self.image = nil
-            if let cachedImage = imageCache.object(forKey: NSString(string: imageUrlString)) {
-                self.image = cachedImage
-                return
-            }
-                DispatchQueue.global(qos: .background).async {
-                if let url = URL(string: imageUrlString) {
-                    URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
-                        
-                        //print("RESPONSE FROM API: \(response)")
-                        if error != nil {
-                            print("ERROR LOADING IMAGES FROM URL: \(error!.localizedDescription) \(imageUrlString)")
-                            DispatchQueue.main.async {
-                                self.image = placeHolder
-                            }
-                            return
-                        }
-                        DispatchQueue.main.async {
-                            if let data = data {
-                                if let downloadedImage = UIImage(data: data) {
-                                    imageCache.setObject(downloadedImage, forKey: NSString(string: imageUrlString))
-                                    self.image = downloadedImage
-                                }
-                            }
-                        }
-                    }).resume()
-                }
-            }
-
+            let url = URL(string: imageUrlString)
+            self.sd_setImage(with: url, placeholderImage: placeHolder, options: .continueInBackground, completed: nil)
         } else {
             self.isHidden = true
         }
@@ -66,4 +40,26 @@ extension UIViewController {
         alertController.addAction(okButton)
         self.present(alertController, animated: true, completion: nil)
     }
+    func showSpinner() {
+        let spinnerView = UIView.init(frame: self.view.bounds)
+        spinnerView.backgroundColor = UIColor.init(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
+        let ai = UIActivityIndicatorView.init(style: .whiteLarge)
+        ai.startAnimating()
+        ai.center = spinnerView.center
+        
+        DispatchQueue.main.async {
+            spinnerView.addSubview(ai)
+            self.view.addSubview(spinnerView)
+        }
+        
+        vSpinner = spinnerView
+    }
+    
+    func removeSpinner() {
+        DispatchQueue.main.async {
+            vSpinner?.removeFromSuperview()
+            vSpinner = nil
+        }
+    }
 }
+
